@@ -19,6 +19,8 @@ insert into book values(4,"Analysis for Design","Kumar",2014,30);
 insert into book values(5,"Project Management","Shiva",2016,30);
 insert into book values(6,"Cloud Management","Shivani",2013,30);
 insert into book values(7,"Cloud Management","Naveena",2015,30);
+insert into book values(8,"Security Management","Bharath",2017,30);
+
 
 -- inserting into  table book_isbn
 insert into book_isbn(SELECT FLOOR(1000000000000 + RAND() * 9000000000000) AS random_isbn,1);
@@ -42,6 +44,7 @@ insert into book_isbn(SELECT FLOOR(1000000000000 + RAND() * 9000000000000) AS ra
 insert into book_isbn(SELECT FLOOR(1000000000000 + RAND() * 9000000000000) AS random_isbn,6);
 insert into book_isbn(SELECT FLOOR(1000000000000 + RAND() * 9000000000000) AS random_isbn,1);
 insert into book_isbn(SELECT FLOOR(1000000000000 + RAND() * 9000000000000) AS random_isbn,2);
+insert into book_isbn(SELECT FLOOR(1000000000000 + RAND() * 9000000000000) AS random_isbn,8);
 
 --
 insert into address values(11,"2206 west hickory","david street","denton",'TX',76201);
@@ -66,4 +69,98 @@ insert into library_member values(409,"kavya","Mallela","kavyamallela55@gmail.co
 insert into library_member values(410,"Srinidhi","Ananthoju","sreenidhiananthoju333@gmail.com",4697020999,"silver",12);
 
 
-select * from library_member;
+insert into library_member values(411,"Bharath","Kumar", "bharathkumar@gmail.com", 4703651124,"Gold", 21);
+
+select * from address;
+insert into address values(21,"noel park","West University Drive","dallas",'TX',76207);
+
+-- find the member by name and mobile_number
+SELECT *
+FROM library_member
+WHERE first_name = 'Bharath' 
+    AND last_name = 'Kumar' 
+    AND phone_number = 4703651124;
+    
+    -- display all the members
+    
+    select * from library_member;
+    
+   
+   -- list all the books a member has checked out
+    SELECT b.title, b.author_name, b.year_published
+FROM library_member m
+JOIN checkout c ON m.member_id = c.member_id
+JOIN book_isbn bi ON c.isbn = bi.isbn
+JOIN book b ON bi.book_id = b.book_id
+WHERE m.first_name = 'Bharath' 
+    AND m.last_name = 'Kumar';
+    
+   -- checkout a book for a given member and given book
+    select * from checkout;
+    select * from book_isbn;
+    insert into checkout values(711,2787699426326,401,now()-15,now()-2,0);
+	insert into checkout values(712,3391843630365,402,now()-15,now()-2,0);
+	insert into checkout values(713,3679406419097,403,now()-15,now()-2,0);
+	insert into checkout values(714,9324960477021,404,now()-15,now()-2,0);   
+	insert into checkout values(715,5996309171427,405,now()-15,now()-2,0);
+    insert into checkout values(716,9115620860937,406,now()-15,now()-2,0);
+    insert into checkout values(717,1028939459499,411,now()-15,now()-2,0);
+    
+     -- checkout a book for a given member and given book
+select * from book;
+
+-- given book='Security Management' book id=8
+-- given member ="Bharath member id=411
+ select isbn from book_isbn where book_id=8;
+ 
+  insert into checkout values(718,9324960477021,411,DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY),DATE_ADD(CURRENT_DATE(), INTERVAL 15 DAY),0);
+  
+  -- list avaialble books and quantity that can be checked out
+SELECT 
+    b.book_id,
+    b.title,
+    b.author_name,
+    b.year_published,
+    b.quantity - COALESCE(SUM(CASE WHEN c.is_returned = FALSE THEN 1 ELSE 0 END), 0) AS available_quantity
+FROM 
+    book b
+LEFT JOIN 
+    book_isbn bi ON b.book_id = bi.book_id
+LEFT JOIN 
+    checkout c ON bi.isbn = c.isbn
+GROUP BY 
+    b.book_id, b.title, b.author_name, b.year_published, b.quantity;
+    
+  select * from checkout;
+-- list all the checkouts that are due in fifteen days
+SELECT *
+FROM checkout
+WHERE DATEDIFF(due_date, CURRENT_DATE()) =15;
+
+--  list all the checkouts that are over due 
+select * from checkout;
+update checkout set due_date=DATE_SUB(NOW(), INTERVAL 20 DAY),checkout_date=DATE_SUB(NOW(), INTERVAL 2 DAY) where id=714;
+update checkout set due_date=DATE_SUB(NOW(), INTERVAL 20 DAY),checkout_date=DATE_SUB(NOW(), INTERVAL 2 DAY) where id=717;
+SELECT *
+FROM checkout
+WHERE due_date < CURRENT_DATE();
+
+-- list all the books that are checked out today
+SELECT DISTINCT b.*,c.*
+FROM book b
+JOIN book_isbn bi ON b.book_id = bi.book_id
+JOIN checkout c ON bi.isbn = c.isbn
+WHERE DATE(c.checkout_date) = CURDATE();
+
+-- select * from checkout;
+-- update checkout set checkout_date=now() where id=701;
+
+-- -- create a book
+-- display all isbns and their checkout status along with book information ( tital, author etc,.)
+
+
+SELECT bi.isbn, b.title, b.author_name, b.year_published, b.quantity,
+       CASE WHEN c.is_returned = FALSE THEN 'Checked Out' ELSE 'Available' END AS checkout_status
+FROM book b
+JOIN book_isbn bi ON b.book_id = bi.book_id
+LEFT JOIN checkout c ON bi.isbn = c.isbn;
